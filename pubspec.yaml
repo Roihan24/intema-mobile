@@ -1,0 +1,31 @@
+name: intema_app
+description: Aplikasi layanan informasi teman istimewa.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.18.0 <4.0.0'
+
+dependencies:
+  http: ^0.13.6
+  flutter:
+    sdk: flutter
+  webview_flutter: ^4.0.7
+
+
+  # Tambahan package jika diperlukan nanti:
+  # provider: ^6.0.5
+  # shared_preferences: ^2.0.15
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/logo.png
+    - assets/tangan.png
+    - assets/telinga.png

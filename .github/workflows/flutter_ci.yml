@@ -1,0 +1,37 @@
+name: Flutter CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.0.0'
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Tests
+        run: flutter test
+
+      - name: Send Telegram Notification
+        if: always()
+        run: |
+            STATUS=${{ job.status }}
+            curl -s -X POST https://api.telegram.org/bot7335164771:AAHrrOgdv1zcub8vAyTunH-2TP1ur5UOWqg/sendMessage \
+            -d chat_id=<YOUR_CHAT_ID> \
+            -d text="Build $STATUS for commit ${{ github.sha }}"
+  

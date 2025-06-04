@@ -1,30 +1,30 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:intema/main.dart';
+import 'package:intema/screens/welcome_screen.dart';
+import 'package:flutter/material.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('WelcomeScreen tampil dengan benar di MyApp', (WidgetTester tester) async {
+    await tester.pumpWidget(MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Cek ada widget MaterialApp
+    expect(find.byType(MaterialApp), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Karena initialRoute adalah '/', cek WelcomeScreen muncul
+    expect(find.byType(WelcomeScreen), findsOneWidget);
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Cek teks 'SELAMAT DATANG' muncul
+    expect(find.text('SELAMAT DATANG'), findsOneWidget);
+
+    // Cek tombol 'MASUK' muncul
+    expect(find.widgetWithText(ElevatedButton, 'MASUK'), findsOneWidget);
+
+    // Simulasi tap tombol 'MASUK' dan cek pindah ke route /login
+    await tester.tap(find.widgetWithText(ElevatedButton, 'MASUK'));
+    await tester.pumpAndSettle();
+
+    // Setelah tap, harusnya pindah ke LoginScreen
+    // Jadi cek ada widget LoginScreen
+    expect(find.text('Login'), findsOneWidget);  // Contoh asumsi LoginScreen ada teks 'Login'
   });
 }

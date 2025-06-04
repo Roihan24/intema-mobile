@@ -1,4 +1,4 @@
-name: Flutter CI
+name: Flutter Build
 
 on:
   push:
@@ -10,28 +10,54 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Setup Flutter
+      - name: Set up Flutter (3.24.1)
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.0.0'
+          flutter-version: '3.24.1'  # Match your local version
+          cache: true
 
-      - name: Install Dependencies
-        run: flutter pub get
-
-      - name: Run Tests
-        run: flutter test
-
-      - name: Send Telegram Notification
-        if: always()
+      - name: Validate Flutter & Dart versions
         run: |
-            STATUS=${{ job.status }}
-            curl -s -X POST https://api.telegram.org/bot7335164771:AAHrrOgdv1zcub8vAyTunH-2TP1ur5UOWqg/sendMessage \
-            -d chat_id=<YOUR_CHAT_ID> \
-            -d text="Build $STATUS for commit ${{ github.sha }}"
-  
+          flutter --version
+          dart --version
+      - name: Run build APK
+        run: flutter build apk --release
+
+      - name: Extract version from pubspec
+        id: extract_version
+        run: |
+          VERSION_NAME=$(grep 'version:' pubspec.yaml | cut -d ' ' -f 2 | tr -d '\n')
+          echo "VERSION_NAME=${VERSION_NAME}" >> $GITHUB_ENV
+          echo "Extracted version: ${VERSION_NAME}"
+
+      - name: Rename APK with version
+        run: |
+          mv build/app/outputs/flutter-apk/app-release.apk \
+             build/app/outputs/flutter-apk/app-release-${{ env.VERSION_NAME }}.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-${{ env.VERSION_NAME }}.apk
+          path: build/app/outputs/flutter-apk/app-release-${{ env.VERSION_NAME }}.apk
+
+      - name: Set up Python for Telegram script
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install Python dependencies
+        run: pip install requests
+
+      - name: Send APK to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          APK_PATH: build/app/outputs/flutter-apk/app-release-${{ env.VERSION_NAME }}.apk
+        run: python .github/send_telegram.py
